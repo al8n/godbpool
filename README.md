@@ -19,7 +19,7 @@ The concurrency fearless of Databases connection pool for Golang.
 - [ ] [MongoDB](https://github.com/mongodb/mongo-go-driver)
 
 ## Examples
-- [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/examples/gorm/main.go)
+- [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/blob/master/examples/gorm/main.go)
 
 [CI-url]: https://github.com/ALiuGuanyan/go-db-pool/actions?query=workflow%3ACI
 [CI-image]: https://github.com/ALiuGuanyan/go-db-pool/workflows/CI/badge.svg?branch=master

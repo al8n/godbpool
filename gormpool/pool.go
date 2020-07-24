@@ -21,7 +21,7 @@ var (
 	ErrSQLType                     = errors.New("pool: sql type does not support")
 	ErrKeepLTCapacity              = errors.New("pool: KeepConn larger than Capacity")
 	ErrCapacity                    = errors.New("pool: invalid capacity size")
-	ErrEmptyArgs = errors.New("pool: args cannot be empty")
+	ErrEmptyArgs                   = errors.New("pool: args cannot be empty")
 )
 
 // Pool configuration
@@ -195,13 +195,6 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 	return p, nil
 }
 
-// size get the number of current total connections of the pool
-func (p *Pool) size() uint64 {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	return p.busyConn.size + p.idleConn.size
-}
-
 // Get a SQL connection from the pool
 func (p *Pool) Get() (conn *Conn, err error) {
 	select {
@@ -220,6 +213,7 @@ func (p *Pool) Get() (conn *Conn, err error) {
 
 		if p.idleConn.size > 0 {
 			conn = p.get()
+			<-p.ch
 			p.mu.Unlock()
 			return conn, nil
 		}
@@ -227,6 +221,7 @@ func (p *Pool) Get() (conn *Conn, err error) {
 		if p.busyConn.size < p.capacity {
 			p.newConn()
 			conn = p.get()
+			<-p.ch
 			p.mu.Unlock()
 			return conn, nil
 		}
@@ -235,17 +230,20 @@ func (p *Pool) Get() (conn *Conn, err error) {
 		start := time.Now()
 		p.currentWaitCount++
 		p.totalWaitCount++
+		p.mu.Unlock()
 		select {
 		case <-p.ctx.Done():
 			p.mu.Unlock()
 			return nil, ErrGetFromClosedPool
 		case <-p.ch:
+			p.mu.Lock()
 			conn = p.get()
 			p.waitDuration += time.Since(start)
 			p.currentWaitCount--
 			p.mu.Unlock()
 			return conn, nil
 		case <-timer.C:
+			p.mu.Lock()
 			p.waitDuration += time.Since(start)
 			p.droppedGetCount++
 			p.currentWaitCount--
@@ -258,7 +256,6 @@ func (p *Pool) Get() (conn *Conn, err error) {
 func (p *Pool) get() (conn *Conn) {
 	conn = p.idleConn.get()
 	p.busyConn.put(conn)
-	<-p.ch
 	return conn
 }
 
@@ -266,6 +263,7 @@ func (p *Pool) get() (conn *Conn) {
 func (p *Pool) Put(conn *Conn) {
 	p.mu.Lock()
 	p.busyConn.deleteByKey(conn.Key)
+
 	if p.idleConn.size < p.keepConn && !p.closed {
 		p.idleConn.put(conn)
 		p.ch <- struct{}{}
