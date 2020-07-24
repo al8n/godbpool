@@ -12,9 +12,9 @@ The concurrency fearless of Databases connection pool for Golang.
 </div>
 
 ## Support & TODO
-[x] [gorm](https://gorm.io)
-[]  [xorm](https://xorm.io)
-[]  [MongoDB](https://github.com/mongodb/mongo-go-driver)
+- [x] [gorm](https://gorm.io)
+- [ ] [xorm](https://xorm.io)
+- [ ] [MongoDB](https://github.com/mongodb/mongo-go-driver)
 
 ## Examples
 - [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/gormpool/examples)

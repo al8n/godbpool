@@ -12,9 +12,9 @@ Go并发安全的数据库连接池
 </div>
 
 ## 支持
-[x] [gorm](https://gorm.io)
-[]  [xorm](https://xorm.io)
-[]  [MongoDB](https://github.com/mongodb/mongo-go-driver)
+- [x] [gorm](https://gorm.io)
+- [ ] [xorm](https://xorm.io)
+- [ ] [MongoDB](https://github.com/mongodb/mongo-go-driver)
 
 ## 例子
 - [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/gormpool/examples)
