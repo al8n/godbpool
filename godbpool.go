@@ -11,4 +11,3 @@ const (
 	SQLite3
 	SQLServer
 )
-

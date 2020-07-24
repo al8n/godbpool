@@ -12,8 +12,8 @@ import (
 func TestMySQLNewPool(t *testing.T) {
 	ctx, canc := context.WithCancel(context.Background())
 	opts := Options{
-		Type:          godbpool.MySQL,
-		Args:          "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+		Type:            godbpool.MySQL,
+		Args:            "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		KeepConn:        2,
 		Capacity:        5,
 		MaxWaitDuration: 2000 * time.Millisecond,
@@ -27,7 +27,7 @@ func TestMySQLNewPool(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
-		go mockJob(&wg, p, 5 * time.Second, i)
+		go mockJob(&wg, p, 5*time.Second, i)
 	}
 	wg.Wait()
 	canc()
@@ -36,8 +36,8 @@ func TestMySQLNewPool(t *testing.T) {
 func TestMySQLClose(t *testing.T) {
 	ctx, canc := context.WithCancel(context.Background())
 	opts := Options{
-		Type:          godbpool.MySQL,
-		Args:          "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+		Type:            godbpool.MySQL,
+		Args:            "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		KeepConn:        2,
 		Capacity:        5,
 		MaxWaitDuration: 2000 * time.Millisecond,
@@ -51,19 +51,19 @@ func TestMySQLClose(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
-		go mockJob(&wg, p, 2 * time.Second, i)
+		go mockJob(&wg, p, 2*time.Second, i)
 	}
 
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
-		go mockJob(&wg, p, 8 * time.Second, i + 2)
+		go mockJob(&wg, p, 8*time.Second, i+2)
 	}
 	time.Sleep(4 * time.Second)
 	canc()
 	wg.Wait()
 }
 
-func mockJob(wg *sync.WaitGroup, p *Pool, duration time.Duration, idx int)  {
+func mockJob(wg *sync.WaitGroup, p *Pool, duration time.Duration, idx int) {
 	fmt.Printf("Routine %d begin\n", idx)
 	format(idx, p.IdleConn(), "Idle")
 	format(idx, p.BusyConn(), "Busy")
@@ -81,6 +81,6 @@ func mockJob(wg *sync.WaitGroup, p *Pool, duration time.Duration, idx int)  {
 	wg.Done()
 }
 
-func format(idx int, value uint64, typ string)  {
+func format(idx int, value uint64, typ string) {
 	fmt.Printf("Routine %d: %s: %d\n", idx, typ, value)
 }

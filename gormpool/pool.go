@@ -16,13 +16,11 @@ import (
 )
 
 var (
-	ErrGetFromClosedPool = errors.New("pool: get from closed pool")
+	ErrGetFromClosedPool           = errors.New("pool: get from closed pool")
 	ErrExceedingMaxWaitingDuration = errors.New("pool: exceeding the maximum waiting duration")
-	ErrSQLType = errors.New("pool: sql type does not support")
-	ErrKeepLTCapacity = errors.New("pool: KeepConn larger than Capacity")
+	ErrSQLType                     = errors.New("pool: sql type does not support")
+	ErrKeepLTCapacity              = errors.New("pool: KeepConn larger than Capacity")
 )
-
-
 
 type Options struct {
 	Type godbpool.SQLType
@@ -42,7 +40,7 @@ type Options struct {
 	connector sqls.Connector
 }
 
-func (o *Options) validate() (err error)  {
+func (o *Options) validate() (err error) {
 	switch o.Type {
 	case godbpool.MySQL:
 		o.connector = my.New(o.Args)
@@ -53,7 +51,7 @@ func (o *Options) validate() (err error)  {
 	case godbpool.SQLServer:
 		o.connector = mssql.New(o.Args)
 	default:
-		return  ErrSQLType
+		return ErrSQLType
 	}
 
 	if o.KeepConn > o.Capacity {
@@ -82,24 +80,24 @@ type Pool struct {
 
 	DBErrChan chan error // DB errors will be sent in this channel
 
-	mu     sync.Mutex // mu protects the following fields
+	mu sync.Mutex // mu protects the following fields
 
 	idleConn *conns
 
 	busyConn *conns
 
-	closed bool // set to true when the pool is closed.
-	ch     chan struct{} // limits open connections when p.Wait is true
-	currentWaitCount    uint64         // current number of connections waited for.
-	totalWaitCount    uint64         // total number of connections waited for.
-	waitDuration time.Duration // total time waited for new connections.
-	droppedGetCount uint64
+	closed           bool          // set to true when the pool is closed.
+	ch               chan struct{} // limits open connections when p.Wait is true
+	currentWaitCount uint64        // current number of connections waited for.
+	totalWaitCount   uint64        // total number of connections waited for.
+	waitDuration     time.Duration // total time waited for new connections.
+	droppedGetCount  uint64
 
-	ctx    context.Context
+	ctx context.Context
 }
 
 // called when do not know DBType and DBArgs are valid
-func (p *Pool) initConn() error   {
+func (p *Pool) initConn() error {
 	db, err := p.connector.Open()
 	if err != nil {
 		return err
@@ -141,7 +139,7 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 	}
 
 	p = &Pool{
-		Type: 			  opts.Type,
+		Type:             opts.Type,
 		Args:             opts.Args,
 		connector:        opts.connector,
 		DBErrChan:        make(chan error),
@@ -149,8 +147,8 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 		capacity:         opts.Capacity,
 		maxWaitDuration:  opts.MaxWaitDuration,
 		mu:               sync.Mutex{},
-		idleConn: 		  newConns(),
-		busyConn: 		  newConns(),
+		idleConn:         newConns(),
+		busyConn:         newConns(),
 		closed:           false,
 		ch:               make(chan struct{}, opts.Capacity),
 		currentWaitCount: 0,
@@ -160,14 +158,12 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 		ctx:              ctx,
 	}
 
-
-
 	err = p.initConn()
 	if err != nil {
 		return nil, err
 	}
 
-	for i := uint64(0); i < p.keepConn - 1; i++ {
+	for i := uint64(0); i < p.keepConn-1; i++ {
 		p.newConn()
 	}
 
@@ -175,7 +171,7 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 }
 
 // Get the number of current total connections of the pool
-func (p *Pool) Size() uint64  {
+func (p *Pool) Size() uint64 {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	return p.busyConn.size + p.idleConn.size
@@ -189,7 +185,7 @@ func (p *Pool) IdleConn() uint64 {
 }
 
 // Get the number of current busy connections of the pool
-func (p *Pool) BusyConn() uint64  {
+func (p *Pool) BusyConn() uint64 {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	return p.busyConn.size
@@ -247,7 +243,7 @@ func (p *Pool) Get() (conn *Conn, err error) {
 	}
 }
 
-func (p *Pool) get() (conn *Conn)  {
+func (p *Pool) get() (conn *Conn) {
 	conn = p.idleConn.get()
 	p.busyConn.put(conn)
 	<-p.ch
@@ -255,7 +251,7 @@ func (p *Pool) get() (conn *Conn)  {
 }
 
 // Put back a connection in the pool
-func (p *Pool) Put(conn *Conn)  {
+func (p *Pool) Put(conn *Conn) {
 	p.mu.Lock()
 	p.busyConn.deleteByKey(conn.Key)
 	if p.idleConn.size < p.keepConn && !p.closed {
@@ -267,8 +263,7 @@ func (p *Pool) Put(conn *Conn)  {
 	p.mu.Unlock()
 }
 
-
-func (p *Pool) Close()  {
+func (p *Pool) Close() {
 	p.mu.Lock()
 	p.closed = true
 	p.idleConn.close()
@@ -276,18 +271,18 @@ func (p *Pool) Close()  {
 }
 
 type conns struct {
-	keys []string
+	keys  []string
 	conns map[string]*Conn
-	size uint64
+	size  uint64
 }
 
 type Conn struct {
-	DB *gorm.DB
-	Key string
+	DB               *gorm.DB
+	Key              string
 	created, updated time.Time
 }
 
-func newConns() *conns  {
+func newConns() *conns {
 	return &conns{
 		keys:  []string{},
 		conns: map[string]*Conn{},
@@ -310,8 +305,8 @@ func (cs *conns) put(conn *Conn) {
 	cs.size++
 }
 
-func (cs *conns) deleteByKey(key string)  {
-	keys := make([]string, cs.size - 1)
+func (cs *conns) deleteByKey(key string) {
+	keys := make([]string, cs.size-1)
 	for _, val := range cs.keys {
 		if val != key {
 			keys = append(keys, val)
@@ -322,7 +317,7 @@ func (cs *conns) deleteByKey(key string)  {
 	delete(cs.conns, key)
 }
 
-func (cs *conns) close()  {
+func (cs *conns) close() {
 	for _, conn := range cs.conns {
 		conn.DB.Close()
 	}

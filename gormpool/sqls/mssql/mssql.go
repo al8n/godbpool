@@ -13,10 +13,10 @@ func New(args interface{}) Ms {
 	return Ms{args}
 }
 
-func (m Ms) Open() (*gorm.DB, error)  {
+func (m Ms) Open() (*gorm.DB, error) {
 	return gorm.Open("mysql", m.args)
 }
 
-func (m Ms) Args() interface{}  {
+func (m Ms) Args() interface{} {
 	return m.args
 }

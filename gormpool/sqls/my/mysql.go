@@ -9,14 +9,14 @@ type My struct {
 	args interface{}
 }
 
-func New(args interface{}) My  {
+func New(args interface{}) My {
 	return My{args: args}
 }
 
-func (m My) Open() (*gorm.DB, error)  {
+func (m My) Open() (*gorm.DB, error) {
 	return gorm.Open("mysql", m.args)
 }
 
-func (m My) Args() interface{}  {
+func (m My) Args() interface{} {
 	return m.args
 }
