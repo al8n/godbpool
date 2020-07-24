@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	godbpool "github.com/ALiuGuanyan/go-db-pool"
+	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/my"
 	"sync"
 	"testing"
 	"time"
@@ -38,14 +39,14 @@ func TestErrorPool(t *testing.T) {
 		err error
 	)
 
-	ctx := context.Background()
 	opts1 := Options{
 		Type:            godbpool.MySQL,
 		KeepConn:        2,
 		Capacity:        5,
 		MaxWaitDuration: 2000 * time.Millisecond,
 	}
-	_, err = NewPool(ctx, opts1)
+
+	_, err = NewPool(context.Background(), opts1)
 	if err == nil {
 		t.Error()
 	}
@@ -58,7 +59,7 @@ func TestErrorPool(t *testing.T) {
 		MaxWaitDuration: 2000 * time.Millisecond,
 	}
 
-	_, err = NewPool(ctx, opts2)
+	_, err = NewPool(context.Background(), opts2)
 	if err == nil {
 		t.Error()
 	}
@@ -71,26 +72,55 @@ func TestErrorPool(t *testing.T) {
 		MaxWaitDuration: 2000 * time.Millisecond,
 	}
 
-	_, err = NewPool(ctx, opts3)
+	_, err = NewPool(context.Background(), opts3)
 	if err == nil {
 		t.Error()
 	}
 
 	opts4 := Options{
 		Type:            godbpool.MySQL,
-		KeepConn:        0,
-		Capacity:        0,
+		KeepConn:        2,
+		Capacity:        5,
 		Args:            "root:1234568910@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		MaxWaitDuration: 2000 * time.Millisecond,
 	}
-
-	_, err = NewPool(ctx, opts4)
+	_, err = NewPool(context.Background(), opts4)
 	if err == nil {
 		t.Error()
 	}
+
+	opts5 := Options{
+		Type:            godbpool.MySQL,
+		Args:            "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+		KeepConn:        0,
+		Capacity:        5,
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+
+	p, err := NewPool(context.Background(), opts5)
+	if err != nil {
+		t.Error(err)
+	}
+
+	p.connector = my.New("asdasd")
+	_, err = p.Get()
+	if err == nil {
+		t.Error()
+	}
+
+	opts6 := Options{
+		Type:            godbpool.MySQL,
+		Args:            "root:12345678@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+		KeepConn:        0,
+		Capacity:        5,
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+
+	_, err = NewPool(context.Background(), opts6)
+	if err == nil {
+		t.Error(err)
+	}
 }
-
-
 
 func TestGetFromClosedPool(t *testing.T) {
 	ctx := context.Background()
@@ -150,12 +180,12 @@ func TestMySQLClose(t *testing.T) {
 		go mockJob(&wg, p, 6*time.Second)
 	}
 	time.Sleep(4 * time.Second)
+	p.Close()
 	canc()
-	wg.Wait()
 }
 
 func TestWaitingGet(t *testing.T) {
-	ctx, canc := context.WithCancel(context.Background())
+
 	opts := Options{
 		Type:            godbpool.MySQL,
 		Args:            "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
@@ -163,7 +193,7 @@ func TestWaitingGet(t *testing.T) {
 		Capacity:        2,
 		MaxWaitDuration: 2000 * time.Millisecond,
 	}
-	p, err := NewPool(ctx, opts)
+	p, err := NewPool(context.TODO(), opts)
 	if err != nil {
 		t.Error(err)
 	}
@@ -179,7 +209,7 @@ func TestWaitingGet(t *testing.T) {
 		go mockJob(&wg, p, 3*time.Second)
 	}
 	wg.Wait()
-	canc()
+	p.Close()
 }
 
 func mockJob(wg *sync.WaitGroup, p *Pool, duration time.Duration) {

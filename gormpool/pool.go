@@ -91,8 +91,6 @@ type Pool struct {
 
 	maxWaitDuration time.Duration
 
-	DBErrChan chan error // DB errors will be sent in this channel
-
 	mu sync.Mutex // mu protects the following fields
 
 	idleConn *conns // idle connections in this pool
@@ -113,42 +111,6 @@ type Pool struct {
 	ctx context.Context
 }
 
-// called when do not know DBType and DBArgs are valid
-func (p *Pool) initConn() error {
-	db, err := p.connector.Open()
-	if err != nil {
-		return err
-	}
-	key := uuid.New().String()
-	conn := &Conn{
-		DB:      db,
-		Key:     key,
-		created: time.Now(),
-		updated: time.Now(),
-	}
-	p.ch <- struct{}{}
-	p.idleConn.put(conn)
-	return nil
-}
-
-// called when know DBType and DBArgs are valid
-func (p *Pool) newConn() {
-	db, err := p.connector.Open()
-	if err != nil {
-		p.DBErrChan <- err
-		return
-	}
-	key := uuid.New().String()
-	conn := &Conn{
-		DB:      db,
-		Key:     key,
-		created: time.Now(),
-		updated: time.Now(),
-	}
-	p.ch <- struct{}{}
-	p.idleConn.put(conn)
-}
-
 func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 	err = opts.validate()
 	if err != nil {
@@ -159,7 +121,6 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 		Type:             opts.Type,
 		Args:             opts.Args,
 		connector:        opts.connector,
-		DBErrChan:        make(chan error),
 		keepConn:         opts.KeepConn,
 		capacity:         opts.Capacity,
 		maxWaitDuration:  opts.MaxWaitDuration,
@@ -175,6 +136,21 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 		ctx:              ctx,
 	}
 
+	if p.keepConn == 0 {
+		err = p.checkArgs()
+		if err != nil {
+			return nil, err
+		}
+		return p, nil
+	}
+
+	for i := uint64(0); i < p.keepConn; i++ {
+		err = p.initConn()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	go func() {
 		select {
 		case <-p.ctx.Done():
@@ -182,17 +158,37 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 		default:
 		}
 	}()
-
-	err = p.initConn()
-	if err != nil {
-		return nil, err
-	}
-
-	for i := uint64(0); i < p.keepConn-1; i++ {
-		p.newConn()
-	}
-
 	return p, nil
+}
+
+// called when do not know DBType and DBArgs are valid
+func (p *Pool) initConn() error {
+	db, err := p.connector.Open()
+	if err != nil {
+		return err
+	}
+	key := uuid.New().String()
+	conn := &Conn{
+		DB:           db,
+		Key:          key,
+		Created:      time.Now(),
+		Updated:      time.Now(),
+		UsageCounter: 0,
+	}
+	p.ch <- struct{}{}
+	p.idleConn.put(conn)
+	return nil
+}
+
+// called when KeepConn is 0, aims to check the
+// args passed can be used to make a valid connection
+func (p *Pool) checkArgs() error {
+	db, err := p.connector.Open()
+	if err != nil {
+		return err
+	}
+	db.Close()
+	return nil
 }
 
 // Get a SQL connection from the pool
@@ -219,7 +215,10 @@ func (p *Pool) Get() (conn *Conn, err error) {
 		}
 
 		if p.busyConn.size < p.capacity {
-			p.newConn()
+			err = p.initConn()
+			if err != nil {
+				return nil, err
+			}
 			conn = p.get()
 			<-p.ch
 			p.mu.Unlock()
@@ -269,6 +268,7 @@ func (p *Pool) Put(conn *Conn) {
 		p.ch <- struct{}{}
 	} else {
 		conn.DB.Close()
+		conn = nil
 	}
 	p.mu.Unlock()
 }
@@ -295,7 +295,6 @@ func (p *Pool) Status() (ps PoolState) {
 		},
 		Capacity:             p.capacity,
 		Closed:               p.closed,
-		DBErrs:               len(p.DBErrChan),
 		Size:                 p.busyConn.size + p.idleConn.size,
 		TotalWaitingDuration: p.waitDuration,
 		CurrentWaitCount:     p.currentWaitCount,
@@ -316,7 +315,8 @@ type conns struct {
 type Conn struct {
 	DB               *gorm.DB
 	Key              string
-	created, updated time.Time
+	Created, Updated time.Time
+	UsageCounter     uint64
 }
 
 func newConns() *conns {
@@ -333,6 +333,8 @@ func (cs *conns) get() (conn *Conn) {
 	conn = cs.conns[key]
 	delete(cs.conns, key)
 	cs.size--
+	conn.UsageCounter++
+	conn.Updated = time.Now()
 	return conn
 }
 
@@ -340,6 +342,7 @@ func (cs *conns) put(conn *Conn) {
 	cs.keys = append(cs.keys, conn.Key)
 	cs.conns[conn.Key] = conn
 	cs.size++
+	conn.Updated = time.Now()
 }
 
 func (cs *conns) deleteByKey(key string) {
@@ -347,6 +350,8 @@ func (cs *conns) deleteByKey(key string) {
 	for _, val := range cs.keys {
 		if val != key {
 			keys = append(keys, val)
+		} else {
+			cs.conns[val].Updated = time.Now()
 		}
 	}
 	cs.keys = keys
