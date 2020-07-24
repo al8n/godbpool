@@ -21,6 +21,7 @@ var (
 	ErrSQLType                     = errors.New("pool: sql type does not support")
 	ErrKeepLTCapacity              = errors.New("pool: KeepConn larger than Capacity")
 	ErrCapacity                    = errors.New("pool: invalid capacity size")
+	ErrEmptyArgs = errors.New("pool: args cannot be empty")
 )
 
 // Pool configuration
@@ -56,6 +57,10 @@ func (o *Options) validate() (err error) {
 		o.connector = mssql.New(o.Args)
 	default:
 		return ErrSQLType
+	}
+
+	if o.Args == nil {
+		return ErrEmptyArgs
 	}
 
 	if o.Capacity == 0 {
@@ -169,6 +174,14 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 		droppedGetCount:  0,
 		ctx:              ctx,
 	}
+
+	go func() {
+		select {
+		case <-p.ctx.Done():
+			p.Close()
+		default:
+		}
+	}()
 
 	err = p.initConn()
 	if err != nil {

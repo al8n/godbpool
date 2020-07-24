@@ -33,6 +33,82 @@ func TestMySQLNewPool(t *testing.T) {
 	canc()
 }
 
+func TestErrorPool(t *testing.T) {
+	var (
+		err error
+	)
+
+	ctx := context.Background()
+	opts1 := Options{
+		Type:            godbpool.MySQL,
+		KeepConn:        2,
+		Capacity:        5,
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+	_, err = NewPool(ctx, opts1)
+	if err == nil {
+		t.Error()
+	}
+
+	opts2 := Options{
+		Type:            godbpool.MySQL,
+		KeepConn:        7,
+		Capacity:        5,
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+
+	_, err = NewPool(ctx, opts2)
+	if err == nil {
+		t.Error()
+	}
+
+	opts3 := Options{
+		Type:            godbpool.MySQL,
+		KeepConn:        0,
+		Capacity:        0,
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+
+	_, err = NewPool(ctx, opts3)
+	if err == nil {
+		t.Error()
+	}
+
+
+}
+
+func TestGetFromClosedPool(t *testing.T) {
+	ctx := context.Background()
+	opts := Options{
+		Type:            godbpool.MySQL,
+		Args:            "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+		KeepConn:        2,
+		Capacity:        5,
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+
+	p, err := NewPool(ctx, opts)
+	if err != nil {
+		t.Error(err)
+	}
+
+	var wg sync.WaitGroup
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go mockJob(&wg, p, 1*time.Second)
+	}
+	p.Close()
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go mockJob(&wg, p, 6*time.Second)
+	}
+	time.Sleep(4 * time.Second)
+	wg.Wait()
+	if !p.Status().Closed {
+		t.Error()
+	}
+}
+
 func TestMySQLClose(t *testing.T) {
 	ctx, canc := context.WithCancel(context.Background())
 	opts := Options{
@@ -49,14 +125,14 @@ func TestMySQLClose(t *testing.T) {
 	}
 
 	var wg sync.WaitGroup
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 8; i++ {
 		wg.Add(1)
-		go mockJob(&wg, p, 2*time.Second)
+		go mockJob(&wg, p, 1*time.Second)
 	}
 
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
-		go mockJob(&wg, p, 8*time.Second)
+		go mockJob(&wg, p, 6*time.Second)
 	}
 	time.Sleep(4 * time.Second)
 	canc()
