@@ -11,8 +11,8 @@ import (
 func TestMySQLNewPool(t *testing.T) {
 	ctx, canc := context.WithCancel(context.Background())
 	opts := Options{
-		DBType:          "mysql",
-		DBArgs:          []interface{}{"root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True"},
+		Type:          MySQL,
+		Args:          "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		KeepConn:        2,
 		Capacity:        5,
 		MaxWaitDuration: 2000 * time.Millisecond,
@@ -35,8 +35,8 @@ func TestMySQLNewPool(t *testing.T) {
 func TestMySQLClose(t *testing.T) {
 	ctx, canc := context.WithCancel(context.Background())
 	opts := Options{
-		DBType:          "mysql",
-		DBArgs:          []interface{}{"root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True"},
+		Type:          MySQL,
+		Args:          "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		KeepConn:        2,
 		Capacity:        5,
 		MaxWaitDuration: 2000 * time.Millisecond,

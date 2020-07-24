@@ -3,23 +3,37 @@ package gormpool
 import (
 	"context"
 	"errors"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls"
+	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/mssql"
+	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/my"
+	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/postgre"
+	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/sqlite"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"sync"
 	"time"
 )
 
-
 var (
 	ErrGetFromClosedPool = errors.New("pool: get from closed pool")
 	ErrExceedingMaxWaitingDuration = errors.New("pool: exceeding the maximum waiting duration")
+	ErrSQLType = errors.New("pool: sql type does not support")
+	ErrKeepLTCapacity = errors.New("pool: KeepConn larger than Capacity")
+)
+
+type SQLType uint8
+
+const (
+	MySQL SQLType = iota
+	PostgreSQL
+	SQLite3
+	SQLServer
 )
 
 type Options struct {
-	DBType string
+	Type SQLType
 
-	DBArgs []interface{}
+	Args interface{}
 
 	// how many idle conn to keep when there are no work to do
 	// this field should smaller than Capacity
@@ -30,22 +44,47 @@ type Options struct {
 	Capacity uint64
 
 	MaxWaitDuration time.Duration
+
+	connector sqls.Connector
+}
+
+func (o *Options) validate() (err error)  {
+	switch o.Type {
+	case MySQL:
+		o.connector = my.New(o.Args)
+	case PostgreSQL:
+		o.connector = postgre.New(o.Args)
+	case SQLite3:
+		o.connector = sqlite.New(o.Args)
+	case SQLServer:
+		o.connector = mssql.New(o.Args)
+	default:
+		return  ErrSQLType
+	}
+
+	if o.KeepConn > o.Capacity {
+		return ErrKeepLTCapacity
+	}
+
+	return nil
 }
 
 type Pool struct {
-	DBType string
+	Type SQLType
 
-	DBArgs []interface{}
+	Args interface{}
+
+	connector sqls.Connector
 
 	// how many idle conn to keep when there are no work to do
 	// this field should smaller than Capacity
-	KeepConn uint64
+	keepConn uint64
 
 	// Maximum number of connections allocated by the pool at a given time.
 	// When zero, there is no limit on the number of connections in the pool.
-	Capacity uint64
+	capacity uint64
 
-	MaxWaitDuration time.Duration
+	maxWaitDuration time.Duration
 
 	DBErrChan chan error // DB errors will be sent in this channel
 
@@ -67,7 +106,7 @@ type Pool struct {
 
 // called when do not know DBType and DBArgs are valid
 func (p *Pool) initConn() error   {
-	db, err := gorm.Open(p.DBType, p.DBArgs...)
+	db, err := p.connector.Open()
 	if err != nil {
 		return err
 	}
@@ -85,7 +124,7 @@ func (p *Pool) initConn() error   {
 
 // called when know DBType and DBArgs are valid
 func (p *Pool) newConn() {
-	db, err := gorm.Open(p.DBType, p.DBArgs...)
+	db, err := p.connector.Open()
 	if err != nil {
 		p.DBErrChan <- err
 		return
@@ -102,12 +141,19 @@ func (p *Pool) newConn() {
 }
 
 func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
+	err = opts.validate()
+	if err != nil {
+		return nil, err
+	}
+
 	p = &Pool{
-		DBType:           opts.DBType,
-		DBArgs:           opts.DBArgs,
-		KeepConn:         opts.KeepConn,
-		Capacity:         opts.Capacity,
-		MaxWaitDuration:  opts.MaxWaitDuration,
+		Type: 			  opts.Type,
+		Args:             opts.Args,
+		connector:        opts.connector,
+		DBErrChan:        make(chan error),
+		keepConn:         opts.KeepConn,
+		capacity:         opts.Capacity,
+		maxWaitDuration:  opts.MaxWaitDuration,
 		mu:               sync.Mutex{},
 		idleConn: 		  newConns(),
 		busyConn: 		  newConns(),
@@ -120,12 +166,14 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 		ctx:              ctx,
 	}
 
+
+
 	err = p.initConn()
 	if err != nil {
 		return nil, err
 	}
 
-	for i := uint64(0); i < p.KeepConn - 1; i++ {
+	for i := uint64(0); i < p.keepConn - 1; i++ {
 		p.newConn()
 	}
 
@@ -175,14 +223,14 @@ func (p *Pool) Get() (conn *Conn, err error) {
 			return conn, nil
 		}
 
-		if p.busyConn.size < p.Capacity {
+		if p.busyConn.size < p.capacity {
 			p.newConn()
 			conn = p.get()
 			p.mu.Unlock()
 			return conn, nil
 		}
 
-		timer := time.NewTimer(p.MaxWaitDuration)
+		timer := time.NewTimer(p.maxWaitDuration)
 		start := time.Now()
 		p.currentWaitCount++
 		p.totalWaitCount++
@@ -216,7 +264,7 @@ func (p *Pool) get() (conn *Conn)  {
 func (p *Pool) Put(conn *Conn)  {
 	p.mu.Lock()
 	p.busyConn.deleteByKey(conn.Key)
-	if p.idleConn.size < p.KeepConn && !p.closed {
+	if p.idleConn.size < p.keepConn && !p.closed {
 		p.idleConn.put(conn)
 		p.ch <- struct{}{}
 	} else {
@@ -253,38 +301,38 @@ func newConns() *conns  {
 	}
 }
 
-func (l *conns) get() (conn *Conn) {
-	key := l.keys[0]
-	l.keys = l.keys[1:]
-	conn = l.conns[key]
-	delete(l.conns, key)
-	l.size--
+func (cs *conns) get() (conn *Conn) {
+	key := cs.keys[0]
+	cs.keys = cs.keys[1:]
+	conn = cs.conns[key]
+	delete(cs.conns, key)
+	cs.size--
 	return conn
 }
 
-func (l *conns) put(conn *Conn) {
-	l.keys = append(l.keys, conn.Key)
-	l.conns[conn.Key] = conn
-	l.size++
+func (cs *conns) put(conn *Conn) {
+	cs.keys = append(cs.keys, conn.Key)
+	cs.conns[conn.Key] = conn
+	cs.size++
 }
 
-func (l *conns) deleteByKey(key string)  {
-	keys := make([]string, l.size - 1)
-	for _, val := range l.keys {
+func (cs *conns) deleteByKey(key string)  {
+	keys := make([]string, cs.size - 1)
+	for _, val := range cs.keys {
 		if val != key {
 			keys = append(keys, val)
 		}
 	}
-	l.keys = keys
-	l.size--
-	delete(l.conns, key)
+	cs.keys = keys
+	cs.size--
+	delete(cs.conns, key)
 }
 
-func (l *conns) close()  {
-	for _, conn := range l.conns {
+func (cs *conns) close()  {
+	for _, conn := range cs.conns {
 		conn.DB.Close()
 	}
-	for _, key := range l.keys {
-		delete(l.conns, key)
+	for _, key := range cs.keys {
+		delete(cs.conns, key)
 	}
 }
