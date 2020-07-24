@@ -3,8 +3,8 @@ package gormpool
 import (
 	"context"
 	"fmt"
-	godbpool "github.com/ALiuGuanyan/go-db-pool"
-	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/my"
+	"github.com/ALiuGuanyan/godbpool"
+	"github.com/ALiuGuanyan/godbpool/gormpool/sqls/my"
 	"sync"
 	"testing"
 	"time"
