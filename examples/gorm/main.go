@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ALiuGuanyan/go-db-pool"
-	"github.com/ALiuGuanyan/go-db-pool/gormpool"
+	"github.com/ALiuGuanyan/godbpool"
+	"github.com/ALiuGuanyan/godbpool/gormpool"
 	"log"
 	"sync"
 	"time"

@@ -1,4 +1,4 @@
-module github.com/ALiuGuanyan/go-db-pool
+module github.com/ALiuGuanyan/godbpool
 
 go 1.14
 
