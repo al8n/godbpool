@@ -3,6 +3,7 @@ package gormpool
 import (
 	"context"
 	"errors"
+	godbpool "github.com/ALiuGuanyan/go-db-pool"
 	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls"
 	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/mssql"
 	"github.com/ALiuGuanyan/go-db-pool/gormpool/sqls/my"
@@ -21,17 +22,10 @@ var (
 	ErrKeepLTCapacity = errors.New("pool: KeepConn larger than Capacity")
 )
 
-type SQLType uint8
 
-const (
-	MySQL SQLType = iota
-	PostgreSQL
-	SQLite3
-	SQLServer
-)
 
 type Options struct {
-	Type SQLType
+	Type godbpool.SQLType
 
 	Args interface{}
 
@@ -50,13 +44,13 @@ type Options struct {
 
 func (o *Options) validate() (err error)  {
 	switch o.Type {
-	case MySQL:
+	case godbpool.MySQL:
 		o.connector = my.New(o.Args)
-	case PostgreSQL:
+	case godbpool.PostgreSQL:
 		o.connector = postgre.New(o.Args)
-	case SQLite3:
+	case godbpool.SQLite3:
 		o.connector = sqlite.New(o.Args)
-	case SQLServer:
+	case godbpool.SQLServer:
 		o.connector = mssql.New(o.Args)
 	default:
 		return  ErrSQLType
@@ -70,7 +64,7 @@ func (o *Options) validate() (err error)  {
 }
 
 type Pool struct {
-	Type SQLType
+	Type godbpool.SQLType
 
 	Args interface{}
 
