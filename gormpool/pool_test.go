@@ -3,6 +3,7 @@ package gormpool
 import (
 	"context"
 	"fmt"
+	godbpool "github.com/ALiuGuanyan/go-db-pool"
 	"sync"
 	"testing"
 	"time"
@@ -11,7 +12,7 @@ import (
 func TestMySQLNewPool(t *testing.T) {
 	ctx, canc := context.WithCancel(context.Background())
 	opts := Options{
-		Type:          MySQL,
+		Type:          godbpool.MySQL,
 		Args:          "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		KeepConn:        2,
 		Capacity:        5,
@@ -35,7 +36,7 @@ func TestMySQLNewPool(t *testing.T) {
 func TestMySQLClose(t *testing.T) {
 	ctx, canc := context.WithCancel(context.Background())
 	opts := Options{
-		Type:          MySQL,
+		Type:          godbpool.MySQL,
 		Args:          "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		KeepConn:        2,
 		Capacity:        5,
