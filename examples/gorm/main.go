@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/ALiuGuanyan/go-db-pool"
 	"github.com/ALiuGuanyan/go-db-pool/gormpool"
 	"log"
 	"sync"
@@ -12,7 +13,7 @@ import (
 func main()  {
 	// config options
 	opts := gormpool.Options{
-		Type:          gormpool.MySQL,
+		Type:          godbpool.MySQL,
 		Args:          "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
 		KeepConn:        2,
 		Capacity:        5,

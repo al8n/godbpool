@@ -10,9 +10,7 @@ type My struct {
 }
 
 func New(args interface{}) My  {
-	return My{
-		args: args,
-	}
+	return My{args: args}
 }
 
 func (m My) Open() (*gorm.DB, error)  {
