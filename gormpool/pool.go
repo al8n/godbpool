@@ -11,6 +11,7 @@ import (
 	"github.com/ALiuGuanyan/godbpool/gormpool/sqls/sqlite"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
+	"strings"
 	"sync"
 	"time"
 )
@@ -37,6 +38,9 @@ type Options struct {
 
 	// DB connection configuration
 	Args interface{}
+
+	// Conn key generate function
+	KeyFunc func() string
 
 	// how many idle conn to keep when there are no work to do
 	// this field should smaller than Capacity
@@ -86,6 +90,8 @@ type Pool struct {
 
 	Args interface{}
 
+	keyFunc func() string
+
 	connector sqls.Connector
 
 	// how many idle conn to keep when there are no work to do
@@ -127,6 +133,7 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 	p = &Pool{
 		Type:             opts.Type,
 		Args:             opts.Args,
+		keyFunc:          opts.KeyFunc,
 		connector:        opts.connector,
 		keepConn:         opts.KeepConn,
 		capacity:         opts.Capacity,
@@ -170,11 +177,23 @@ func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 
 // called when do not know DBType and DBArgs are valid
 func (p *Pool) initConn() error {
-	db, err := p.connector.Open()
+	var (
+		key string
+		db  *gorm.DB
+		err error
+	)
+
+	db, err = p.connector.Open()
 	if err != nil {
 		return err
 	}
-	key := uuid.New().String()
+
+	if p.keyFunc == nil {
+		key = strings.ReplaceAll(uuid.New().String(), "-", "")
+	} else {
+		key = p.keyFunc()
+	}
+
 	conn := &Conn{
 		DB:           db,
 		Key:          key,

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ALiuGuanyan/godbpool"
 	"github.com/ALiuGuanyan/godbpool/gormpool/sqls/my"
+	"github.com/google/uuid"
 	"sync"
 	"testing"
 	"time"
@@ -210,6 +211,48 @@ func TestWaitingGet(t *testing.T) {
 	}
 	wg.Wait()
 	p.Close()
+}
+
+func TestKeyFunc(t *testing.T) {
+	opts1 := Options{
+		Type:     godbpool.MySQL,
+		Args:     "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+		KeepConn: 4,
+		Capacity: 6,
+		KeyFunc: func() string {
+			return uuid.New().String()
+		},
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+	p1, err := NewPool(context.TODO(), opts1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	opts2 := Options{
+		Type:            godbpool.MySQL,
+		Args:            "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+		KeepConn:        4,
+		Capacity:        6,
+		MaxWaitDuration: 2000 * time.Millisecond,
+	}
+	p2, err := NewPool(context.TODO(), opts2)
+	if err != nil {
+		t.Error(err)
+	}
+
+	for i := uint64(0); i < p1.keepConn; i++ {
+		conn, _ := p1.Get()
+		fmt.Println(conn.Key)
+	}
+
+	for i := uint64(0); i < p2.keepConn; i++ {
+		conn, _ := p2.Get()
+		fmt.Println(conn.Key)
+	}
+
+	p1.Close()
+	p2.Close()
 }
 
 func mockJob(wg *sync.WaitGroup, p *Pool, duration time.Duration) {
