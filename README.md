@@ -5,6 +5,7 @@
 
 [![CI][CI-image]][CI-url]
 [![Coverage Status][codecov-image]][codecov-url]
+[![Go Report Card][go-report-image]][go-report-url]
 [![License: MIT][license-image]][license-url]
 
 English | [简体中文](README-zh_CN.md)
@@ -25,5 +26,7 @@ The concurrency fearless of Databases connection pool for Golang.
 [CI-image]: https://github.com/ALiuGuanyan/go-db-pool/workflows/CI/badge.svg?branch=master
 [codecov-image]: https://codecov.io/gh/ALiuGuanyan/go-db-pool/branch/master/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/ALiuGuanyan/go-db-pool
+[go-report-image]: https://goreportcard.com/badge/github.com/ALiuGuanyan/godbpool
+[go-report-url]: https://goreportcard.com/report/github.com/ALiuGuanyan/godbpool
 [license-image]: https://img.shields.io/badge/License-MIT-blue.svg
 [license-url]: https://opensource.org/licenses/MIT
