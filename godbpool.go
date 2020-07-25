@@ -1,5 +1,5 @@
 /*
-The concurrency fearless of Databases connection pool for Golang.
+godbpool: The concurrency fearless of Databases connection pool for Golang.
 */
 package godbpool
 

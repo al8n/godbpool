@@ -5,21 +5,22 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
+// My SQL
 type My struct {
 	args interface{}
 }
 
-// init
+// New: init a struct
 func New(args interface{}) My {
 	return My{args: args}
 }
 
-// build a connection with database
+// Open: build a connection with database
 func (m My) Open() (*gorm.DB, error) {
 	return gorm.Open("mysql", m.args)
 }
 
-// return the connection args
+// Args: return the connection args
 func (m My) Args() interface{} {
 	return m.args
 }

@@ -5,21 +5,22 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
+// SQLite
 type SQLite struct {
 	args interface{}
 }
 
-// init
+// New: init a struct
 func New(args interface{}) SQLite {
 	return SQLite{args}
 }
 
-// build a connection with database
+// Open: build a connection with database
 func (s SQLite) Open() (*gorm.DB, error) {
 	return gorm.Open("sqlite3", s.args)
 }
 
-// return the connection args
+// Args: return the connection args
 func (s SQLite) Args() interface{} {
 	return s.args
 }

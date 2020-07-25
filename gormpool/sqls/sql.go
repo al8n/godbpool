@@ -2,7 +2,7 @@ package sqls
 
 import "github.com/jinzhu/gorm"
 
-// conn interface
+// Connector: conn interface
 type Connector interface {
 	// build a connection with database
 	Open() (*gorm.DB, error)

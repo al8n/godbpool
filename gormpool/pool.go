@@ -16,15 +16,21 @@ import (
 )
 
 var (
+	// ErrGetFromClosedPool if try to get a Conn from the closed pool
 	ErrGetFromClosedPool           = errors.New("pool: get from closed pool")
+	// ErrExceedingMaxWaitingDuration try to get a Conn from the pool but exceeding the max waiting time
 	ErrExceedingMaxWaitingDuration = errors.New("pool: exceeding the maximum waiting duration")
+	// ErrSQLType try to connect the SQL which does not support by the pool
 	ErrSQLType                     = errors.New("pool: sql type does not support")
+	// ErrKeepLTCapacity keepConn larger than the pool capacity
 	ErrKeepLTCapacity              = errors.New("pool: KeepConn larger than Capacity")
+	// ErrCapacity provide a invalid capacity
 	ErrCapacity                    = errors.New("pool: invalid capacity size")
+	// ErrEmptyArgs DB arg is empty
 	ErrEmptyArgs                   = errors.New("pool: args cannot be empty")
 )
 
-// Pool configuration
+// Options: Pool configuration
 type Options struct {
 	// DB type, e.g. MySQL, SQLite3...
 	Type godbpool.SQLType
@@ -74,7 +80,7 @@ func (o *Options) validate() (err error) {
 	return nil
 }
 
-// connection pool
+// Pool: connection pool
 type Pool struct {
 	Type godbpool.SQLType
 
@@ -111,6 +117,7 @@ type Pool struct {
 	ctx context.Context
 }
 
+// NewPool: Create a new pool
 func NewPool(ctx context.Context, opts Options) (p *Pool, err error) {
 	err = opts.validate()
 	if err != nil {
@@ -311,7 +318,7 @@ type conns struct {
 	size  uint64
 }
 
-// A struct wraps the internal DB connection
+// Conn: A struct wraps the internal DB connection
 type Conn struct {
 	DB               *gorm.DB
 	Key              string
@@ -368,19 +375,18 @@ func (cs *conns) close() {
 	}
 }
 
-// Connection List state
+// ConnsState: Connection List state
 type ConnsState struct {
 	Size  uint64
 	Conns map[string]*Conn
 }
 
-// Pool state
+// PoolState: Pool state
 type PoolState struct {
 	IdleConnsState       ConnsState
 	BusyConnsState       ConnsState
 	Capacity             uint64
 	Size                 uint64
-	DBErrs               int
 	Closed               bool
 	TotalWaitingDuration time.Duration
 	CurrentWaitCount     uint64
