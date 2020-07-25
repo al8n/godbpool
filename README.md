@@ -15,9 +15,15 @@ The concurrency fearless of Databases connection pool for Golang.
 </div>
 
 ## Support & TODO
-- [x] [gorm](https://gorm.io)
-- [ ] [xorm](https://xorm.io)
-- [ ] [MongoDB](https://github.com/mongodb/mongo-go-driver)
+| Database or ORM | Status |
+| :---: | :---: |
+| [gorm](https://gorm.io) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> |
+| [xorm](https://xorm.io) |  | 
+| [MongoDB](https://github.com/mongodb/mongo-go-driver) |  |
+| [etcd](https://etcd.io) |  | 
+| [TiKV](https://tikv.org) |  |
+| [Apache Cassandra](https://cassandra.apache.org) |  |
+
 
 ## Examples
 - [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/blob/master/examples/gorm/main.go)

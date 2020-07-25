@@ -15,9 +15,14 @@ Go并发安全的数据库连接池
 </div>
 
 ## 支持
-- [x] [gorm](https://gorm.io)
-- [ ] [xorm](https://xorm.io)
-- [ ] [MongoDB](https://github.com/mongodb/mongo-go-driver)
+| Database or ORM | Status |
+| :---: | :---: |
+| [gorm](https://gorm.io) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> |
+| [xorm](https://xorm.io) |  | 
+| [MongoDB](https://github.com/mongodb/mongo-go-driver) |  |
+| [etcd](https://etcd.io) |  | 
+| [TiKV](https://tikv.org) |  |
+| [Apache Cassandra](https://cassandra.apache.org) |  |
 
 ## 例子
 - [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/blob/master/examples/gorm/main.go)
