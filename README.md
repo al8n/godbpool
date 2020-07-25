@@ -15,14 +15,14 @@ The concurrency fearless of Databases connection pool for Golang.
 </div>
 
 ## Support & TODO
-| Database or ORM | Status |
-| :---: | :---: |
-| [gorm](https://gorm.io) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> |
-| [xorm](https://xorm.io) |  | 
-| [MongoDB](https://github.com/mongodb/mongo-go-driver) |  |
-| [etcd](https://etcd.io) |  | 
-| [TiKV](https://tikv.org) |  |
-| [Apache Cassandra](https://cassandra.apache.org) |  |
+| Database/ORM | Status | Official Site | Client Repo |
+| :---: | :---: | :---: | :---: |
+| [gorm](https://github.com/ALiuGuanyan/godbpool/gormpool/) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> | https://gorm.io | https://github.com/go-gorm/gorm |
+| [xorm]() |  | https://xorm.io | https://gitea.com/xorm/xorm |
+| [MongoDB]() |  | https://www.mongodb.com | https://github.com/mongodb/mongo-go-driver |
+| [etcd]() |  | https://etcd.io | https://go.etcd.io/etcd/v3/client |
+| [TiKV]() |  | https://tikv.org | https://github.com/tikv/client-go |
+| [Apache Cassandra]() |  | https://cassandra.apache.org | https://github.com/gocql/gocql |
 
 
 ## Examples
