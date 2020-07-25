@@ -10,17 +10,17 @@ type Ms struct {
 	args interface{}
 }
 
-// New: init a struct
+// New will init a struct
 func New(args interface{}) Ms {
 	return Ms{args}
 }
 
-// Open: build a connection with database
+// Open will build a connection with database
 func (m Ms) Open() (*gorm.DB, error) {
 	return gorm.Open("mysql", m.args)
 }
 
-// Args: return the connection args
+// Args will return the connection args
 func (m Ms) Args() interface{} {
 	return m.args
 }

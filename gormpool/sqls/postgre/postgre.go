@@ -10,17 +10,17 @@ type Postgre struct {
 	args interface{}
 }
 
-// New: init a struct
+// New will init a struct
 func New(args interface{}) Postgre {
 	return Postgre{args}
 }
 
-// Open: build a connection with database
+// Open will build a connection with database
 func (p Postgre) Open() (*gorm.DB, error) {
 	return gorm.Open("postgres", p.args)
 }
 
-// Args: return the connection args
+// Args will return the connection args
 func (p Postgre) Args() interface{} {
 	return p.args
 }
