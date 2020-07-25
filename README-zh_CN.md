@@ -17,12 +17,12 @@ Go并发安全的数据库连接池
 ## 支持
 | Database/ORM | Status | Official Site | Client Repo |
 | :---: | :---: | :---: | :---: |
-| [gorm](https://github.com/ALiuGuanyan/godbpool/gormpool/) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> | https://gorm.io | https://github.com/go-gorm/gorm |
-| [xorm]() |  | https://xorm.io | https://gitea.com/xorm/xorm |
-| [MongoDB]() |  | https://www.mongodb.com | https://github.com/mongodb/mongo-go-driver |
-| [etcd]() |  | https://etcd.io | https://go.etcd.io/etcd/v3/client |
-| [TiKV]() |  | https://tikv.org | https://github.com/tikv/client-go |
-| [Apache Cassandra]() |  | https://cassandra.apache.org | https://github.com/gocql/gocql |
+| [gorm](https://github.com/ALiuGuanyan/godbpool/gormpool/) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> | https://gorm.io | [gorm repo](https://github.com/go-gorm/gorm) |
+| [xorm]() |  | https://xorm.io | [xorm repo](https://gitea.com/xorm/xorm) |
+| [MongoDB]() |  | https://www.mongodb.com | [mongo-go-driver](https://github.com/mongodb/mongo-go-driver) |
+| [etcd]() |  | https://etcd.io | [etcd v3 client](https://go.etcd.io/etcd/v3/client) |
+| [TiKV]() |  | https://tikv.org | [TiKV client](https://github.com/tikv/client-go) |
+| [Apache Cassandra]() |  | https://cassandra.apache.org | [gocql](https://github.com/gocql/gocql) |
 
 ## 例子
 - [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/blob/master/examples/gorm/main.go)
