@@ -5,8 +5,7 @@
 
 [![CI][CI-image]][CI-url]
 [![Coverage Status][codecov-image]][codecov-url]
-
-[![Go Report Card][go-report-image]][go-report-url]
+[![Go Report Card](https://goreportcard.com/badge/github.com/ALiuGuanyan/godbpool)](https://goreportcard.com/report/github.com/ALiuGuanyan/godbpool)
 [![License: MIT][license-image]][license-url]
 
 English | [简体中文](README-zh_CN.md)
