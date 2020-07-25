@@ -21,6 +21,53 @@ Go并发安全的数据库连接池
 
 ## 例子
 - [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/blob/master/examples/gorm/main.go)
+  ```go
+  package main
+  
+  import (
+  	"context"  
+  	"github.com/ALiuGuanyan/godbpool"
+  	"github.com/ALiuGuanyan/godbpool/gormpool"
+  	"log"  
+  	"time"
+  )
+  
+  func main() {
+  	// config options
+  	opts := gormpool.Options{
+  		Type:            godbpool.MySQL,
+  		Args:            "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True",
+  		KeepConn:        2,
+  		Capacity:        5,
+  		MaxWaitDuration: 2000 * time.Millisecond,
+  	}
+  
+  	// create a pool  
+  	p, err := gormpool.NewPool(context.Background(), opts)
+  	if err != nil {
+  		log.Println(err)
+  		return
+  	}
+    
+    // Get a conn
+    conn, err := p.Get()
+    if err != nil {
+        log.Println(err)
+    }
+  
+    // ... do some CURD
+    
+    // put conn back to pool 
+    p.Put(conn)
+  
+    // check the pool status
+    p.Status()
+  
+    // close pool
+    p.Close()
+  }
+  ```
+
 
 [CI-url]: https://github.com/ALiuGuanyan/go-db-pool/actions?query=workflow%3ACI
 [CI-image]: https://github.com/ALiuGuanyan/go-db-pool/workflows/CI/badge.svg?branch=master
