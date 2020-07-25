@@ -1,9 +1,9 @@
 /*
-godbpool: The concurrency fearless of Databases connection pool for Golang.
+Package godbpool : The concurrency fearless of Databases connection pool for Golang.
 */
 package godbpool
 
-// Support SQL database type
+// SQLType means Support SQL database type
 type SQLType uint8
 
 // Support SQL databases

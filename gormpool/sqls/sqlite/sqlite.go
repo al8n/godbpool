@@ -5,7 +5,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-// SQLite
+// SQLite for sqlite database
 type SQLite struct {
 	args interface{}
 }
