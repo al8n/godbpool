@@ -5,6 +5,7 @@
 
 [![CI][CI-image]][CI-url]
 [![Coverage Status][codecov-image]][codecov-url]
+
 [![Go Report Card][go-report-image]][go-report-url]
 [![License: MIT][license-image]][license-url]
 
