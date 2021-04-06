@@ -1,4 +1,4 @@
-module github.com/ALiuGuanyan/godbpool
+module github.com/al8n/godbpool
 
 go 1.14
 
