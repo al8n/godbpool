@@ -17,7 +17,7 @@ Go并发安全的数据库连接池
 ## 支持
 | Database/ORM | Status | Official Site | Client Repo |
 | :---: | :---: | :---: | :---: |
-| [gorm](https://github.com/ALiuGuanyan/godbpool/gormpool/) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> | https://gorm.io | [gorm repo](https://github.com/go-gorm/gorm) |
+| [gorm](https://github.com/al8n/godbpool/gormpool/) | <div align="center"><img src="images/correct.svg" width="24px" height="24px" /></div> | https://gorm.io | [gorm repo](https://github.com/go-gorm/gorm) |
 | [xorm]() |  | https://xorm.io | [xorm repo](https://gitea.com/xorm/xorm) |
 | [MongoDB]() |  | https://www.mongodb.com | [mongo-go-driver](https://github.com/mongodb/mongo-go-driver) |
 | [etcd]() |  | https://etcd.io | [etcd v3 client](https://go.etcd.io/etcd/v3/client) |
@@ -31,8 +31,8 @@ Go并发安全的数据库连接池
   
   import (
   	"context"  
-  	"github.com/ALiuGuanyan/godbpool"
-  	"github.com/ALiuGuanyan/godbpool/gormpool"
+  	"github.com/al8n/godbpool"
+  	"github.com/al8n/godbpool/gormpool"
   	"log"  
   	"time"
   )
