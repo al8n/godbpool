@@ -25,7 +25,7 @@ Go并发安全的数据库连接池
 | [Apache Cassandra]() |  | https://cassandra.apache.org | [gocql](https://github.com/gocql/gocql) |
 
 ## 例子
-- [gorm pool](https://github.com/ALiuGuanyan/go-db-pool/blob/master/examples/gorm/main.go)
+- [gorm pool](https://github.com/al8n/godbpool/blob/master/examples/gorm/main.go)
   ```go
   package main
   
