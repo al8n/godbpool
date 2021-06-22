@@ -75,7 +75,7 @@ The concurrency fearless of Databases connection pool for Golang.
   ```
  
  
-[CI-url]: https://github.com/ALiuGuanyan/go-db-pool/actions?query=workflow%3ACI
+[CI-url]: https://github.com/al8n/godbpool/actions?query=workflow%3ACI
 [CI-image]: https://img.shields.io/github/workflow/status/al8n/godbpool/CI?style=flat-square
 [codecov-image]: https://img.shields.io/codecov/c/gh/al8n/godbpool/master?style=flat-square
 [codecov-url]: https://app.codecov.io/gh/al8n/godbpool
