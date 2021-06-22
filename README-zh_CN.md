@@ -77,7 +77,7 @@ Go并发安全的数据库连接池
 [CI-url]: https://github.com/ALiuGuanyan/go-db-pool/actions?query=workflow%3ACI
 [CI-image]: https://img.shields.io/github/workflow/status/ALiuGuanyan/godbpool/CI?style=flat-square
 [codecov-image]: https://img.shields.io/codecov/c/gh/ALiuGuanyan/godbpool/master?style=flat-square
-[codecov-url]: https://codecov.io/gh/ALiuGuanyan/go-db-pool
+[codecov-url]: https://app.codecov.io/gh/al8n/godbpool
 [go-report-image]: https://img.shields.io/badge/go%20report-A%2B-brightgreen?style=flat-square
 [go-report-url]: https://goreportcard.com/report/github.com/ALiuGuanyan/godbpool
 [license-image]: https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square
